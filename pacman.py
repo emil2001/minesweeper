@@ -1,7 +1,7 @@
 from tkinter import *
 import time
 import copy
-
+#YEA
 root = Tk()
 canv = Canvas(root, width=0, height=0)
 canv.pack()
