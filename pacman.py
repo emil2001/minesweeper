@@ -7,19 +7,20 @@ canv = Canvas(root, width=0, height=0)
 canv.pack()
 x, y = 150, 150
 vxp, vyp = 1, 0
-vxg,vyg = 0,0
+vxg1,vyg1 = 0,0
+vxg2,vyg2 = 0,0
 grid = 30
 nvxp, nvyp = 0,0
 matr = []
 i,j = 0,0
-xfield,yfield = 1000,1000
+xfield, yfield = 1000,1000
 pos_matrix = []
 pr,pd,pl,pu = 0,0,0,0
 go = False
 
 
-def shortest_route_count():
-    global pos_matrix,xp,yp,xg,yg
+def shortest_route_count(xg,yg):
+    global pos_matrix,xp,yp
     i,j = return_pos_ghost(xg,yg)
     ip, jp = return_pos_pac(xp, yp,pos_matrix)
     queue = [(i,j)]
@@ -39,11 +40,47 @@ def shortest_route_count():
             pos_matrix[i][j+1] = int(pos_matrix[i][j]) + 1
             queue += [(i, j + 1)]
 
-def router():
-    global xp,yp,xg,yg,pos_matrix,pos_matrix1
+
+def shortest_route_count_forward(xg,yg,vxp,vyp):
+    global pos_matrix,xp,yp
+    i,j = return_pos_ghost(xg,yg)
+    ip, jp = return_pos_pac(xp, yp, pos_matrix)
+    if vxp == 1 and ip+3 <len(pos_matrix) and pos_matrix[ip+2][jp] != -1:
+        ip += 2
+       # print(-1)
+    elif vxp == -1 and ip-2>=0 and pos_matrix[ip-2][jp] != -1:
+        ip -= 2
+        #print(0)
+    elif vyp == 1 and jp+3 <len(pos_matrix[0]) and pos_matrix[ip][jp+2] != -1:
+        jp += 2
+        #print(1)
+    elif vyp == -1 and jp-2>=0 and pos_matrix[ip][jp-2] != -1:
+        jp -= 2
+        #print(2)
+    queue = [(i,j)]
+    pos_matrix[i][j] =0
+    while len(queue)>0 and (i != ip or j != jp):
+        i,j = queue.pop(0)
+        if i-1 >=0 and pos_matrix[i-1][j] == -2:
+            pos_matrix[i-1][j] = int(pos_matrix[i][j])+1
+            queue+=[(i-1,j)]
+        if i+1<len(pos_matrix) and pos_matrix[i + 1][j] == -2:
+            pos_matrix[i + 1][j] = int(pos_matrix[i][j]) + 1
+            queue += [(i+1, j)]
+        if j-1 >= 0 and pos_matrix[i][j-1] == -2:
+            pos_matrix[i][j-1] = int(pos_matrix[i][j]) + 1
+            queue += [(i, j - 1)]
+        if j+1 <len(pos_matrix[i]) and pos_matrix[i][j+1] == -2:
+            pos_matrix[i][j+1] = int(pos_matrix[i][j]) + 1
+            queue += [(i, j + 1)]
+    return ip,jp
+
+def router_to_pac(xg, yg):
+    global xp,yp,pos_matrix,pos_matrix1,xg1,xg2,yg1,yg2,vxp,vyp
     pos_matrix = copy.deepcopy(pos_matrix1)
 
-    shortest_route_count()
+    shortest_route_count(xg, yg)
+
     ip,jp = return_pos_pac(xp,yp,pos_matrix)
     ig,jg = return_pos_ghost(xg,yg)
     path = [(ip,jp)]
@@ -60,6 +97,33 @@ def router():
 
     return path
 
+
+def router_forward(xg,yg,vxp,vyp):
+    global xp,yp,pos_matrix,pos_matrix1
+    pos_matrix = copy.deepcopy(pos_matrix1)
+    shortest_route_count_forward(xg,yg,vxp,vyp)
+    ip,jp = return_pos_pac(xp,yp,pos_matrix)
+    ip1,jp1 = shortest_route_count_forward(xg,yg,vxp,vyp)
+    ig,jg = return_pos_ghost(xg,yg)
+    path = [(ip1,jp1)]
+    while path[0] != (ig,jg):
+       # print(path)
+       # print(pos_matrix)
+        x1,y1 = path[0]
+        if y1-1 >= 0 and int(pos_matrix[x1][y1-1])+1 == int(pos_matrix[x1][y1]):
+            path = [(x1,y1-1)] +path
+           # print(1)
+        elif y1+1 <len(pos_matrix[x1]) and int(pos_matrix[x1][y1 + 1]) + 1 == int(pos_matrix[x1][y1]):
+            path = [(x1, y1 + 1)] + path
+          #  print(2)
+        elif x1-1 >= 0 and int(pos_matrix[x1-1][y1]) + 1 == int(pos_matrix[x1][y1]):
+            path = [(x1-1, y1 )] + path
+          #  print(3)
+        elif x1+1<len(pos_matrix) and int(pos_matrix[x1+1][y1]) + 1 == int(pos_matrix[x1][y1]):
+            path = [(x1+1, y1)] + path
+          #  print(4)
+
+    return path
 
 
 def field_read():
@@ -90,7 +154,7 @@ def field_read():
     a.close()
 
 def field_draw():
-    global pos_matrix,xp,yp,i,j,grid,xg,yg,pos_matrix1
+    global pos_matrix,xp,yp,i,j,grid,xg1,yg1,pos_matrix1,xg2,yg2
     for x in pos_matrix:
         for symb in x:
             if symb == '1':
@@ -105,9 +169,14 @@ def field_draw():
                 draw_pac(xp,yp)
             if symb == '4':
                 pos_matrix[i][j] = -2
-                xg = i*grid
-                yg = j*grid
-                draw_ghost('green',xg,yg)
+                xg1 = i*grid
+                yg1 = j*grid
+                draw_ghost('green',xg1,yg1)
+            if symb == '5':
+                pos_matrix[i][j] = -2
+                xg2 = i * grid
+                yg2 = j * grid
+                draw_ghost('yellow', xg2, yg2)
             j += 1
         j = 0
         i+=1
@@ -130,12 +199,12 @@ def return_pos_pac(xp, yp,pos_matrix):
         jp =0
     return ip,jp
 
-def if_game_over():
-    global xg, yg, xp, yp
-    if xp-5<=xg<=xp+5 and yp-5<=yg<=yp+5:
-        return 1
-    else:
-        return 0
+#def if_game_over(xg,yg):
+    #global xg, yg, xp, yp
+    #if xp-5<=xg<=xp+5 and yp-5<=yg<=yp+5:
+   #     return 1
+   # else:
+   #     return 0
 
 
 def game_over():
@@ -145,8 +214,8 @@ def game_over():
                 font="Verdana 40", justify=CENTER, fill="red")
     canv.update()
 
-def draw_field(xfield,yfield):
-    canv.create_rectangle(0, 0, xfield, yfield, fill="white", outline="black")
+#def draw_field(xfield,yfield):
+    #canv.create_rectangle(0, 0, xfield, yfield, fill="white", outline="black")
 
 
 def draw_pac(xp,yp):
@@ -155,25 +224,26 @@ def draw_pac(xp,yp):
 
 
 def draw_ghost(color,xg,yg):
-    canv.delete('ghost')
+    canv.delete(color)
     canv.create_arc([xg, yg], [xg + 30, yg + 30], start=0, extent=180,
-                    style=CHORD,fill =color , outline=color, width=2, tag='ghost')
-    canv.create_rectangle(xg, yg+15, xg+30, yg+20, fill=color, outline=color, tag='ghost')
-    canv.create_polygon([xg, yg+20], [xg+10, yg+20], [xg+5, yg+30], fill=color, tag='ghost')
-    canv.create_polygon([xg+10, yg + 20], [xg + 20, yg + 20], [xg + 15, yg + 30], fill=color, tag='ghost')
-    canv.create_polygon([xg+20, yg + 20], [xg + 31, yg + 20], [xg + 25, yg + 30], fill=color, tag='ghost')
+                    style=CHORD,fill =color , outline=color, width=2, tag=color)
+    canv.create_rectangle(xg, yg+15, xg+30, yg+20, fill=color, outline=color, tag=color)
+    canv.create_polygon([xg, yg+20], [xg+10, yg+20], [xg+5, yg+30], fill=color, tag=color)
+    canv.create_polygon([xg+10, yg + 20], [xg + 20, yg + 20], [xg + 15, yg + 30], fill=color, tag=color)
+    canv.create_polygon([xg+20, yg + 20], [xg + 31, yg + 20], [xg + 25, yg + 30], fill=color, tag=color)
     eyebx = xg+5
     eyeby = yg+5
-    canv.create_oval([eyebx-1, eyeby], [eyebx+9, eyeby+10], fill="white", tag='ghost')
-    canv.create_oval([eyebx+11, eyeby], [eyebx + 21, eyeby + 10], fill="white", tag='ghost')
+    canv.create_oval([eyebx-1, eyeby], [eyebx+9, eyeby+10], fill="white", tag=color)
+    canv.create_oval([eyebx+11, eyeby], [eyebx + 21, eyeby + 10], fill="white", tag=color)
 
 
 
 
 def draw():
-    global x, y,xp,yp,xg,yg
+    global x, y,xp,yp,xg1,yg1,xg2,yg2
     draw_pac(xp,yp)
-    draw_ghost('green',xg,yg)
+    draw_ghost('green',xg1,yg1)
+    draw_ghost('yellow',xg2,yg2)
     canv.update()
 
 
@@ -212,13 +282,16 @@ def movedown(event):
     nvyp = 1
     nvxp = 0
 
-def moveghost():
-    global xp,yp,xg,yg,vxg,vyg,go
-    path = router()
-    if len(path) ==1 :
+def moveghost(xg,yg,vxg,vyg):
+    global xp,yp,go,xg1,xg2,yg1,yg2
+    if xg == xg1 and yg == yg1:
+        path = router_to_pac(xg, yg)
+    else:
+        path = router_forward(xg,yg,vxp,vyp)
+    if xg == xp and yg == yp:
         game_over()
         go = True
-    elif (xg+15-grid//2)%grid == 0 and (yg+15-grid//2)%grid == 0:
+    elif (xg+15-grid//2)%grid == 0 and (yg+15-grid//2)%grid == 0 and len(path) >1:
         i1,j1 = path[1]
         ig,jg = return_pos_ghost(xg,yg)
         if ig+1 == i1:
@@ -235,6 +308,7 @@ def moveghost():
             vxg = 0
     xg+=vxg
     yg+=vyg
+    return xg,yg,vxg,vyg
 
 
 def if_cant_right(xp, yp, nvxp):
@@ -309,7 +383,8 @@ root.bind('<s>', movedown)
 draw()
 while 1:
     move_pacman()
-    moveghost()
+    xg1,yg1,vxg1,vyg1 = moveghost(xg1,yg1,vxg1,vyg1)
+    xg2,yg2,vxg2,vyg2 = moveghost(xg2,yg2,vxg2,vyg2)
     if go:
         break
     draw()
