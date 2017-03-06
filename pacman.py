@@ -288,7 +288,7 @@ def moveghost(xg,yg,vxg,vyg):
         path = router_to_pac(xg, yg)
     else:
         path = router_forward(xg,yg,vxp,vyp)
-    if xg == xp and yg == yp:
+    if xp-5 <= xg <=xp+5 and yp-5<= yg <= yp+5:
         game_over()
         go = True
     elif (xg+15-grid//2)%grid == 0 and (yg+15-grid//2)%grid == 0 and len(path) >1:
