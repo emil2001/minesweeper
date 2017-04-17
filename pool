@@ -1,0 +1,105 @@
+from tkinter import *
+import math
+import time 
+
+root = Tk()
+canv = Canvas(root, width = 800, height = 600)
+canv.pack()
+
+
+class table:
+    def __init__(self,c1,c2,h,w,x,y):
+        self.c1 = c1
+        self.c2 = c2
+        self.x = x
+        self.y = y
+        self.h = h
+        self.w = w
+    def draw(self):
+        canv.delete('table')
+        canv.create_rectangle(self.x,self.y,self.x+self.w,self.y+self.h,fill = self.c1, outline = self.c2, tag = 'table')
+
+class stick:
+    def __init__(self,N,alp,v,l,color,xb,yb):
+
+        self.N = N
+        self.l = l
+        self.alp = math.radians(alp)
+        self.v = v
+        self.color = color
+        self.xb = xb
+        self.yb = yb
+    def draw(self):
+        #a = ball(self.xb, self.yb, 10, "black", 1)
+        canv.delete('stick')
+        canv.create_line(self.xb+math.cos(self.alp)*self.v,self.yb-math.sin(self.alp)*self.v,self.xb+math.cos(self.alp)*self.v+math.cos(self.alp)*self.l,self.yb-math.sin(self.alp)*self.v-math.sin(self.alp)*self.l,tag = 'stick')
+    def rotate(self,angle):
+        self.alp += math.radians(angle)
+    def select(self,N):
+        self.N = N
+    def redraw(self):
+        canv.delete('stick')
+        self.xb = a.x
+        self.yb = a.y
+        stick.draw()
+
+class ball:
+    def __init__(self, x, y, r, color,N):
+        self.N = N
+        self.x = x
+        self.y = y
+        self.r = r
+        self.color = color
+        self.vx = 0
+        self.vy = 0
+    def move(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vx -= (bool(self.vx > 0) * 2 - 1) * (self.vx != 0)
+        self.vy -= (bool(self.vy > 0) * 2 - 1) * (self.vy != 0)
+        if( -2 < self.vx and self.vx < 2 ):
+            self.vx = 0
+        if( -2 < self.vy and self.vy < 2 ):
+            self.vy = 0
+    def change_sp(self, x,y):
+        self.vx+=x
+        self.vy+=y
+    def draw(self):
+        canv.delete(N)
+        canv.create_oval(self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r, fill = self.color, tag = N)
+
+alp = 50
+v = 0
+a = ball(200, 200, 10, "black",1)
+table = table('green', 'brown',400,200,300,100)
+stick = stick(1,alp,v,50,'white',a.x,a.y)
+
+def move_top(event):
+    print(1)
+    global a,stick
+    a.change_sp(0,-10)
+    stick.redraw()
+def change_angle(event):
+    global stick
+    stick.rotate(5)
+    stick.draw()
+def change_angle_reversed(event):
+    global stick
+    stick.rotate(-5)
+    stick.draw()
+
+root.bind("<Up>", change_angle_reversed)
+root.bind("<Down>", change_angle)
+root.bind("<Left>",move_top)
+
+
+
+while True:
+    table.draw()
+    a.move()
+    a.draw()
+    stick.draw()
+    canv.update()
+    time.sleep(0.02)
+
+root.mainloop()
