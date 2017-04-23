@@ -3,7 +3,7 @@ import math
 import time 
 
 root = Tk()
-canv = Canvas(root, width = 800, height = 600)
+canv = Canvas(root, width = 2000, height = 2000)
 canv.pack()
 
 
@@ -32,7 +32,7 @@ class stick:
     def draw(self):
         #a = ball(self.xb, self.yb, 10, "black", 1)
         canv.delete('stick')
-        canv.create_line(self.xb+math.cos(self.alp)*self.v,self.yb-math.sin(self.alp)*self.v,self.xb+math.cos(self.alp)*self.v+math.cos(self.alp)*self.l,self.yb-math.sin(self.alp)*self.v-math.sin(self.alp)*self.l,tag = 'stick')
+        canv.create_line(self.xb+math.cos(self.alp)*self.v,self.yb-math.sin(self.alp)*self.v,self.xb+math.cos(self.alp)*self.v+math.cos(self.alp)*self.l,self.yb-math.sin(self.alp)*self.v-math.sin(self.alp)*self.l,width=3,fill = 'brown',tag = 'stick')
     def rotate(self,angle):
         self.alp += math.radians(angle)
     def select(self,N):
@@ -56,15 +56,24 @@ class ball:
         self.color = color
         self.vx = 0
         self.vy = 0
+        self.v = 0
     def move(self):
         self.x += self.vx
         self.y += self.vy
-        self.vx -= (bool(self.vx > 0) * 2 - 1) * (self.vx != 0)
-        self.vy -= (bool(self.vy > 0) * 2 - 1) * (self.vy != 0)
-        if( -2 < self.vx and self.vx < 2 ):
-            self.vx = 0
-        if( -2 < self.vy and self.vy < 2 ):
-            self.vy = 0
+        if (-2 < self.v and self.v < 2):
+            self.v = 0
+        else:
+            self.v -=1
+        if self.vx <0:
+            self.vx =- self.v*math.cos(alp)
+        elif self.vx >0:
+            self.vx = self.v * math.cos(alp)
+        if self.vy<0:
+            self.vy = self.v * math.sin(alp)
+        elif self.vy>0:
+            self.vy = -self.v * math.sin(alp)
+
+
     def change_sp(self, x,y):
         self.vx+=x
         self.vy+=y
@@ -96,6 +105,7 @@ def change_angle_reversed(event):
 def STRIKE( event):
     a.vx = -math.cos(stick.alp) * stick.v//5
     a.vy = math.sin(stick.alp) * stick.v//5
+    a.v = math.sqrt(a.vx**2+a.vy**2)
     stick.v = 0
     stick.draw()
 
