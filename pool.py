@@ -65,13 +65,13 @@ class ball:
         else:
             self.v -=1
         if self.vx <0:
-            self.vx =- self.v*math.cos(alp)
+            self.vx =- self.v*math.cos(stick.alp)
         elif self.vx >0:
-            self.vx = self.v * math.cos(alp)
+            self.vx =- self.v * math.cos(stick.alp)
         if self.vy<0:
-            self.vy = self.v * math.sin(alp)
+            self.vy = self.v * math.sin(stick.alp)
         elif self.vy>0:
-            self.vy = -self.v * math.sin(alp)
+            self.vy = self.v * math.sin(stick.alp)
 
 
     def change_sp(self, x,y):
@@ -103,8 +103,8 @@ def change_angle_reversed(event):
 
 
 def STRIKE( event):
-    a.vx = -math.cos(stick.alp) * stick.v//5
-    a.vy = math.sin(stick.alp) * stick.v//5
+    a.vx = -math.cos(stick.alp) * stick.v/5
+    a.vy = math.sin(stick.alp) * stick.v/5
     a.v = math.sqrt(a.vx**2+a.vy**2)
     stick.v = 0
     stick.draw()
